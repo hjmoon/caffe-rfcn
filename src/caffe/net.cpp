@@ -158,7 +158,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
     const int param_size = layer_param.param_size();
     const int num_param_blobs = layers_[layer_id]->blobs().size();
     CHECK_LE(param_size, num_param_blobs)
-        << "Too many params specified for layer " << layer_param.name();
+        << "Too many params specified for layer " << layer_param.name() <<","<<param_size<<","<<num_param_blobs;
     ParamSpec default_param_spec;
     for (int param_id = 0; param_id < num_param_blobs; ++param_id) {
       const ParamSpec* param_spec = (param_id < param_size) ?
@@ -756,7 +756,7 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
     vector<shared_ptr<Blob<Dtype> > >& target_blobs =
         layers_[target_layer_id]->blobs();
     CHECK_EQ(target_blobs.size(), source_layer.blobs_size())
-        << "Incompatible number of blobs for layer " << source_layer_name;
+        << "Incompatible number of blobs for layer " << source_layer_name <<","<<target_blobs.size()<<","<< source_layer.blobs_size();
     for (int j = 0; j < target_blobs.size(); ++j) {
       if (!target_blobs[j]->ShapeEquals(source_layer.blobs(j))) {
         Blob<Dtype> source_blob;

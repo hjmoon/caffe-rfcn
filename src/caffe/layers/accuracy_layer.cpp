@@ -59,6 +59,8 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     caffe_set(top[1]->count(), Dtype(0), top[1]->mutable_cpu_data());
   }
   int count = 0;
+//  LOG(INFO) << "inner_num_: " << inner_num_<<",top_k:"<<top_k_<<",top.size():"<<top.size()<<",num_labels:"<<num_labels;
+//  top_k_ = inner_num_ - 1;
   for (int i = 0; i < outer_num_; ++i) {
     for (int j = 0; j < inner_num_; ++j) {
       const int label_value =
@@ -66,12 +68,14 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       if (has_ignore_label_ && label_value == ignore_label_) {
         continue;
       }
+      //LOG(INFO) << "label_value: " << label_value;
       if (top.size() > 1) ++nums_buffer_.mutable_cpu_data()[label_value];
       DCHECK_GE(label_value, 0);
       DCHECK_LT(label_value, num_labels);
       // Top-k accuracy
       std::vector<std::pair<Dtype, int> > bottom_data_vector;
       for (int k = 0; k < num_labels; ++k) {
+	//LOG(INFO) << "bottom_data"<<k<<": " << bottom_data[i * dim + k * inner_num_ + j];
         bottom_data_vector.push_back(std::make_pair(
             bottom_data[i * dim + k * inner_num_ + j], k));
       }
@@ -80,7 +84,11 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
           bottom_data_vector.end(), std::greater<std::pair<Dtype, int> >());
       // check if true label is in top k predictions
       for (int k = 0; k < top_k_; k++) {
-        if (bottom_data_vector[k].second == label_value) {
+	/*if(bottom_data_vector[k].second == 1){
+		LOG(INFO) << "bottom_data_vector: " << bottom_data_vector[k].second;
+		LOG(INFO) << "label_value: " << label_value;
+	}*/
+        if (bottom_data_vector[k].second == label_value /*&& bottom_data_vector[k].first > 0.8*/) {
           ++accuracy;
           if (top.size() > 1) ++top[1]->mutable_cpu_data()[label_value];
           break;
@@ -89,7 +97,7 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       ++count;
     }
   }
-
+//  LOG(INFO) << "accuracy: " << accuracy<<",count:"<<count;
   // LOG(INFO) << "Accuracy: " << accuracy;
   top[0]->mutable_cpu_data()[0] = accuracy / count;
   if (top.size() > 1) {
